@@ -1,10 +1,31 @@
-import time
+from lerobot.cameras.realsense.configuration_realsense import RealSenseCameraConfig
+from lerobot.cameras.realsense.camera_realsense import RealSenseCamera
+from lerobot.cameras.configs import ColorMode, Cv2Rotation
 from lerobot.teleoperators.so101_leader import SO101LeaderConfig, SO101Leader
 from lerobot.robots.so101_follower import SO101FollowerConfig, SO101Follower
+import time
+
+#60 fps max
+rs2_config = RealSenseCameraConfig(
+    serial_number_or_name="825312071606",
+    fps=60,
+    width=640,
+    height=480,
+    color_mode=ColorMode.RGB,
+    use_depth=True,
+    rotation=Cv2Rotation.NO_ROTATION
+)
+
+#camera = RealSenseCamera(rs2_config)
+#camera.connect()
+camera_configs = {
+    "front": rs2_config,   # key name can be anything, but be consistent
+}
 
 robot_config = SO101FollowerConfig(
     port="/dev/ttyACM0",
     id="valdis_follower_arm",
+    cameras=camera_configs
 )
 
 teleop_config = SO101LeaderConfig(
@@ -21,6 +42,8 @@ loop_times = []
 
 while True:
     loop_start = time.time()
+
+    observation = robot.get_observation()
     
     action = teleop_device.get_action()
     robot.send_action(action)
@@ -33,5 +56,5 @@ while True:
         avg_time = sum(loop_times) / len(loop_times)
         min_time = min(loop_times)
         max_time = max(loop_times)
-        print(f"\rLoop time - Avg: {avg_time*1000:.2f}ms, Min: {min_time*1000:.2f}ms, Max: {max_time*1000:.2f}ms, Freq: {1/avg_time:.1f}Hz", end='', flush=True)
+        print(f"\rLoop time - Avg: {avg_time*1000:.2f}ms, Min: {min_time*1000:.2f}ms, Max: {max_time*1000:.2f}ms, Freq: {1/avg_time:.1f}Hz, camera {observation['front'].shape}", end='', flush=True)
         loop_times = []
