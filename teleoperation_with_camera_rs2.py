@@ -4,6 +4,7 @@ from lerobot.cameras.configs import ColorMode, Cv2Rotation
 from lerobot.teleoperators.so101_leader import SO101LeaderConfig, SO101Leader
 from lerobot.robots.so101_follower import SO101FollowerConfig, SO101Follower
 import time
+import cv2
 
 #60 fps max
 rs2_config = RealSenseCameraConfig(
@@ -47,6 +48,14 @@ while True:
     
     action = teleop_device.get_action()
     robot.send_action(action)
+
+    #show stream from camera
+    img = observation['front']
+    #bgr to rgb conversion
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    cv2.imshow("RealSense Color", img)
+    if cv2.waitKey(1) & 0xFF == 27:  # ESC
+        break
     
     loop_time = time.time() - loop_start
     loop_times.append(loop_time)
